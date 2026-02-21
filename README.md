@@ -106,17 +106,21 @@ Above instructions will generate a binary in the same directory with the name `n
 
 ### Run in production environment
 
-To run nvidiagpubeat with pre-installed nvidia-smi that is available in PATH, switch to "test" environment
-in nvidiagpubeat.yml and use
+To run nvidiagpubeat with pre-installed nvidia-smi that is available in PATH, switch to "production" environment
+in nvidiagpubeat.yml and use:
 
 ```yaml
 env: "production"
 ```
 
+**Important:** Run the **nvidiagpubeat binary** with the config file via `-c`. Do not run the YAML file itself.
+
 ```bash
 export PATH=$PATH:.
 ./nvidiagpubeat -c nvidiagpubeat.yml -e -d "*" -E seccomp.enabled=false
 ```
+
+**Wrong (causes "command not found" for YAML keys):** `./nvidiagpubeat.yml -e -d "*"` — the shell would try to execute the config file.
 
 `seccomp.enabled` setting : nvidiagpubeat uses libbeat framework. For security purposes the libbeat framework by default
 drops the ability to fork/exec. As nvidiagpubeat executes `nvidia-smi`, security setting must be disabled by
@@ -135,6 +139,17 @@ export PATH=$PATH:.
 
 localnvidiasmi executable built for macOS and is a mock GPU event generator that supports events for --query-compute-apps and --query-gpu. The executable is generated using nvidiasmilocal/localnvidiasmi.go file.
 
+### Troubleshooting
+
+**Error: `./nvidiagpubeat.yml: line 60: output.elasticsearch:: command not found` (and similar for other keys)**
+
+You are running the **config file** as the command. The shell is interpreting the YAML as shell syntax. Use the **binary** and pass the config with `-c`:
+
+```bash
+./nvidiagpubeat -c nvidiagpubeat.yml -e -d "*" -E seccomp.enabled=false
+```
+
+Not: `./nvidiagpubeat.yml -e -d "*" ...`
 
 ### Sample event
 The file nvidiagpubeat.yml defines the beat `nvidiagpubeat` with multiple options for `query`. For example `query: "--query-gpu=` will provide information about GPU and `query: "--query-compute-apps=` will list currently active compute processes.

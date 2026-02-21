@@ -1,4 +1,10 @@
 # /***********************************************************************
+# CONFIG FILE - Do not run this file as a command.
+# Run the beat binary and pass this file with -c:
+#   ./nvidiagpubeat -c nvidiagpubeat.yml -e -d "*" -E seccomp.enabled=false
+# If you run "nvidiagpubeat.yml ..." you will see "command not found" for YAML keys.
+# ************************************************************************
+#
 # This module was automatically generated using the framework found below:
 # https://www.elastic.co/guide/en/beats/devguide/current/new-beat.html
 
