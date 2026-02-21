@@ -29,6 +29,17 @@ import (
 	"github.com/elastic/beats/libbeat/logp"
 )
 
+// stringOnlyFields are CSV columns that must always be stored as strings (never parsed as float).
+// e.g. driver_version can be "460.32.03" (two dots), which ParseFloat would reject (#32).
+var stringOnlyFields = map[string]bool{
+	"driver_version": true,
+	"name":           true,
+	"gpu_bus_id":     true,
+	"gpu_uuid":       true,
+	"process_name":   true,
+	"gpu_name":       true,
+}
+
 //GPUUtilization provides interface to utilization metrics and state of GPU.
 type GPUUtilization interface {
 	command(env string) *exec.Cmd
@@ -112,6 +123,11 @@ func (g Utilization) run(cmd *exec.Cmd, gpuCount int, query string, action Actio
 		}
 		for i := 0; i < len(record) && i < len(headers); i++ {
 			rawValue := record[i]
+			headerName := strings.TrimSpace(headers[i])
+			if stringOnlyFields[headerName] {
+				event.Put(headers[i], rawValue)
+				continue
+			}
 			iValue, err := strconv.ParseFloat(record[i], 64)
 			if err == nil {
 				event.Put(headers[i], iValue)

@@ -18,7 +18,10 @@
 package nvidia
 
 import (
+	"bufio"
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 )
 
@@ -95,5 +98,36 @@ func Test_Event_Contains_Type_Field(t *testing.T) {
 		if o["type"] != "nvidiagpubeat" {
 			t.Errorf("event does not contain 'type' field equal to 'nvidiagpubeat'")
 		}
+	}
+}
+
+// stringReaderMock is an Action that reads from a fixed string (for testing driver_version etc.).
+type stringReaderMock struct{ content string }
+
+func (m stringReaderMock) start(cmd *exec.Cmd) *bufio.Reader {
+	return bufio.NewReader(strings.NewReader(m.content))
+}
+
+// Test_DriverVersion_WithTwoDots verifies driver_version e.g. 460.32.03 is stored as string (Fix #32).
+func Test_DriverVersion_WithTwoDots(t *testing.T) {
+	util := newUtilization()
+	query := "--query-gpu=name,driver_version,count"
+	csvContent := "name, driver_version, count, gpu_uuid\nGeForce RTX 3090, 460.32.03, 2\n"
+	mock := stringReaderMock{content: csvContent}
+	cmd := util.command("prod", query)
+	events, err := util.run(cmd, 1, query, mock)
+	if err != nil {
+		t.Fatalf("run failed: %v", err)
+	}
+	if len(events) != 1 || events[0] == nil {
+		t.Fatal("expected one event")
+	}
+	ev := events[0]
+	drv, ok := ev["driver_version"]
+	if !ok {
+		t.Fatal("event missing driver_version")
+	}
+	if s, ok := drv.(string); !ok || s != "460.32.03" {
+		t.Errorf("driver_version should be string \"460.32.03\", got %T %v", drv, drv)
 	}
 }
