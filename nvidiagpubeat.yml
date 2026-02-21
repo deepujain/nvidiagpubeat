@@ -36,6 +36,10 @@ nvidiagpubeat:
   # env can be test or production. test is for test purposes to evaluate funcationality of this beat. Switch to production
   # when you want to run this beat on a Nvidia GPU machine with SMI driver installed.
 
+#================================ Template (export template / setup) ===========
+# Path to fields.yml so "export template" and "setup" use correct mappings (Fix #34, #15).
+setup.template.fields: "_meta/fields.yml"
+
 #================================ General =====================================
 
 # The name of the shipper that publishes the network data. It can be used to group

@@ -135,6 +135,14 @@ export PATH=$PATH:.
 
 localnvidiasmi executable built for macOS and is a mock GPU event generator that supports events for --query-compute-apps and --query-gpu. The executable is generated using nvidiasmilocal/localnvidiasmi.go file.
 
+### Export index template
+To export the index template (e.g. for loading into Elasticsearch), run with the config file so the correct field mappings are used (including `@timestamp` as `date`):
+
+```bash
+./nvidiagpubeat -c nvidiagpubeat.yml export template
+```
+
+The config sets `setup.template.fields` to `_meta/fields.yml`, so the exported template includes the proper `properties` (see issue #34, #15).
 
 ### Sample event
 The file nvidiagpubeat.yml defines the beat `nvidiagpubeat` with multiple options for `query`. For example `query: "--query-gpu=` will provide information about GPU and `query: "--query-compute-apps=` will list currently active compute processes.

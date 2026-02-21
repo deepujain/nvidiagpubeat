@@ -18,12 +18,35 @@
 # limitations under the License.
 # ************************************************************************/
 
+# Fields used to generate the index template (see issue #34, #15).
+# Export with: ./nvidiagpubeat -c nvidiagpubeat.yml export template
 - key: nvidiagpubeat
   title: nvidiagpubeat
-  description:
+  description: >
+    NVIDIA GPU metrics collected via nvidia-smi.
   fields:
+    - name: "@timestamp"
+      type: date
+      required: true
+      description: >
+        Timestamp when the event was generated.
+    - name: beat
+      type: group
+      description: >
+        Beat metadata.
+      fields:
+        - name: hostname
+          type: keyword
+        - name: name
+          type: keyword
+        - name: version
+          type: keyword
     - name: counter
       type: long
       required: true
       description: >
         PLEASE UPDATE DOCUMENTATION
+    - name: type
+      type: keyword
+      description: >
+        Event type.
