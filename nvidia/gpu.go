@@ -64,11 +64,13 @@ func (g Utilization) command(env string, query string) *exec.Cmd {
 
 //Run the nvidiasmi command to collect GPU metrics
 //Parse output and return events.
+//For --query-gpu there is one row per GPU; for --query-compute-apps there is one row per process
+//(possibly more than gpuCount), so we append events instead of using a fixed-size slice (#29).
 func (g Utilization) run(cmd *exec.Cmd, gpuCount int, query string, action Action) ([]common.MapStr, error) {
 	logp.Info("Running command %s for query:  %s  with gpuCount %d", cmd, query, gpuCount)
 	reader := action.start(cmd)
 	gpuIndex := 0
-	events := make([]common.MapStr, gpuCount, 2*gpuCount)
+	events := make([]common.MapStr, 0, gpuCount*2)
 
 	for {
 		line, err := reader.ReadString('\n')
@@ -119,7 +121,7 @@ func (g Utilization) run(cmd *exec.Cmd, gpuCount int, query string, action Actio
 				event.Put(headers[i], rawValue)
 			}
 		}
-		events[gpuIndex] = event
+		events = append(events, event)
 		gpuIndex++
 	}
 	cmd.Wait()
